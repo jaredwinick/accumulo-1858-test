@@ -19,9 +19,9 @@ public class ApplicationServletContextListener implements
 	
 	public void contextDestroyed(ServletContextEvent event) {
 		
-		//try {
+		try {
 			System.out.println("Closing Instance");
-			//instance.close();
+			instance.close();
 			System.out.println("Instance closed...waiting");
 			
 			/*
@@ -45,10 +45,10 @@ public class ApplicationServletContextListener implements
 			catch (InterruptedException ie) {
 				ie.printStackTrace();
 			}
-		//}
-		//catch (AccumuloException e) {
-		//	e.printStackTrace();
-		//}
+		}
+		catch (AccumuloException e) {
+			e.printStackTrace();
+		}
 		
 		System.out.println("Context Destroyed");
 
