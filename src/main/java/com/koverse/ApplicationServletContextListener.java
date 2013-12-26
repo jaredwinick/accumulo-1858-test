@@ -3,12 +3,13 @@ package com.koverse;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
-
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.Instance;
 import org.apache.accumulo.core.client.ZooKeeperInstance;
+import org.apache.accumulo.core.client.security.tokens.AuthenticationToken;
+import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 
 
 public class ApplicationServletContextListener implements
@@ -57,9 +58,10 @@ public class ApplicationServletContextListener implements
 	public void contextInitialized(ServletContextEvent event) {
 				 
 		
-		instance = new ZooKeeperInstance("kv_vagrant", "vagrant");
+		instance = new ZooKeeperInstance("test", "192.168.3.3");
 		try {
-			connector = instance.getConnector("root", "vagrant".getBytes());
+			AuthenticationToken passwordToken = new PasswordToken("root");
+			connector = instance.getConnector("root", passwordToken);
 		} catch (AccumuloException e) {
 			e.printStackTrace();
 		} catch (AccumuloSecurityException e) {
