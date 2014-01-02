@@ -28,10 +28,14 @@ public class ClientThreads {
 	 *
 	 */
 	private static void shutdownThriftTransportPoolThreads() {
+		ClassLoader currentClassLoader = Thread.currentThread().getContextClassLoader();
+		System.out.println("Current Classloader:" + currentClassLoader);
 		Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
 		for (Thread thread : threadSet) {
-			//System.out.println(String.format("[%s] [%s]", thread.getName(), thread.getClass().getName()));
-			if (thread.getName().equals("Thrift Connection Pool Checker")) {
+			System.out.println(String.format("[%s] [%s]", thread.getName(), thread.getClass().getName()));
+			printThreadClassloaders(thread);
+
+			if (threadHasNameAndCurrentClassLoader(thread, "Thrift Connection Pool Checker")) {
 				thread.stop();
 				
 				while (thread.isAlive()) {
@@ -46,17 +50,50 @@ public class ClientThreads {
 	}
 	
 	/**
+	 * Checks to see if the thread has the given name and has the same ClassLoader
+	 * as the current thread
+	 * @param thread
+	 * @param threadName
+	 * @return 
+	 */
+	private static boolean threadHasNameAndCurrentClassLoader(final Thread thread, final String threadName) {
+		
+		ClassLoader currentClassLoader = Thread.currentThread().getContextClassLoader();
+		if (thread.getName().equals(threadName) && thread.getContextClassLoader().equals(currentClassLoader)) {
+			return true;
+		}
+		return false;
+	}
+	
+	private static boolean threadClassStartsWithNameAndCurrentClassLoader(final Thread thread, final String threadName) {
+		
+		ClassLoader currentClassLoader = Thread.currentThread().getContextClassLoader();
+		if (thread.getClass().getName().startsWith(threadName) && thread.getContextClassLoader().equals(currentClassLoader)) {
+			return true;
+		}
+		return false;
+	}
+	
+	private static void printThreadClassloaders(Thread thread) {
+		ClassLoader currentClassLoader = thread.getContextClassLoader();
+		while (currentClassLoader != null) {
+			System.out.println("Classloader:" + currentClassLoader.toString());
+			currentClassLoader = currentClassLoader.getParent();
+		}
+	}
+	
+	/**
 	 * Wait for ZooKeeper threads to die
 	 */
 	private static void waitForZooKeeperClientThreads() {
 		Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
 		for (Thread thread : threadSet) {
-			if (thread.getClass().getName().startsWith("org.apache.zookeeper.ClientCnxn")) {
+			if (threadClassStartsWithNameAndCurrentClassLoader(thread, "org.apache.zookeeper.ClientCnxn")) {
 
 				while (thread.isAlive()) {
 					System.out.println("thread " + thread.getName() + " is still alive in state: "  + thread.getState().toString());
 					try {
-						Thread.sleep(100);
+						Thread.sleep(100); 
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
